@@ -1,0 +1,102 @@
+<figure class="observer" aria-labelledby="observer-caption">
+  <style>
+    .observer { margin: 0 0 2rem; padding: 1rem 1.25rem 1.25rem; border: 1px solid var(--rule); border-radius: 6px; }
+    .observer .ob-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; }
+    .observer button {
+      font-family: var(--sans); font-size: 0.85rem; line-height: 1.4;
+      padding: 0.35rem 0.7rem; border-radius: 4px; cursor: pointer;
+      border: 1px solid var(--rule); background: transparent; color: var(--muted);
+    }
+    .observer button:hover { color: var(--ink); border-color: var(--muted); }
+    .observer button[aria-pressed="true"] { background: var(--look); border-color: var(--look); color: var(--paper); }
+    .observer svg { width: 100%; height: auto; display: block; }
+    .observer .ob-en { font-style: italic; font-size: 1.1rem; margin: 0.5rem 0 0.25rem; }
+    .observer .ob-zh { color: var(--muted); font-size: 1rem; margin: 0; min-height: 3.4em; }
+    .observer figcaption { font-family: var(--sans); font-size: 0.8rem; color: var(--muted); margin-top: 0.75rem; }
+    @media (max-width: 600px) {
+      .observer { padding: 0.75rem; }
+      .observer svg text { font-size: 22px; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .observer #ob-person { transition: transform 0.45s ease; }
+      .observer #ob-dot, .observer #ob-bar, .observer #ob-look, .observer #ob-elab { transition: all 0.45s ease; }
+    }
+  </style>
+  <div class="ob-btns" role="group" aria-label="选择时态">
+    <button type="button" data-i="0" aria-pressed="true">一般过去</button>
+    <button type="button" data-i="1" aria-pressed="false">现在完成</button>
+    <button type="button" data-i="2" aria-pressed="false">过去完成</button>
+    <button type="button" data-i="3" aria-pressed="false">将来完成</button>
+    <button type="button" data-i="4" aria-pressed="false">过去进行</button>
+    <button type="button" data-i="5" aria-pressed="false">现在完成进行</button>
+    <button type="button" data-i="6" aria-pressed="false">must have done</button>
+  </div>
+  <svg viewBox="0 0 680 230" role="img" aria-label="时间轴：小人站在观察点 R，竖虚线是说话此刻 S，琥珀色是事件 E">
+    <defs>
+      <marker id="ob-arrow-axis" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker>
+      <marker id="ob-arrow-look" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--look)"/></marker>
+    </defs>
+    <text x="20" y="175" font-family="var(--sans)" font-size="13" fill="var(--muted)">过去</text>
+    <line x1="60" y1="170" x2="650" y2="170" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#ob-arrow-axis)"/>
+    <text x="660" y="152" text-anchor="end" font-family="var(--sans)" font-size="13" fill="var(--muted)">将来</text>
+    <line x1="460" y1="44" x2="460" y2="182" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 4"/>
+    <text x="460" y="32" text-anchor="middle" font-family="var(--sans)" font-size="13" fill="var(--muted)">说话此刻 S</text>
+    <rect id="ob-bar" x="180" y="164" width="0" height="12" rx="6" fill="var(--event-wash)" stroke="var(--event)" stroke-width="1.25"/>
+    <circle id="ob-dot" cx="240" cy="170" r="7" fill="var(--event)" stroke="var(--event)" stroke-width="1.5"/>
+    <text id="ob-elab" x="240" y="218" text-anchor="middle" font-family="var(--sans)" font-size="13" fill="var(--ink)">事件 E</text>
+    <path id="ob-look" d="M226 92L246 158" fill="none" stroke="var(--look)" stroke-width="1.75" stroke-dasharray="6 5" marker-end="url(#ob-arrow-look)" opacity="0"/>
+    <g id="ob-person" style="transform: translateX(240px)">
+      <g fill="none" stroke="var(--ink)" stroke-width="1.75" stroke-linecap="round">
+        <circle cx="0" cy="96" r="10"/>
+        <line x1="0" y1="106" x2="0" y2="138"/>
+        <line x1="-13" y1="118" x2="13" y2="118"/>
+        <line x1="0" y1="138" x2="-9" y2="164"/>
+        <line x1="0" y1="138" x2="9" y2="164"/>
+      </g>
+      <text id="ob-rlab" x="0" y="198" text-anchor="middle" font-family="var(--sans)" font-size="13" font-weight="700" fill="var(--look)">R</text>
+    </g>
+  </svg>
+  <p class="ob-en" id="ob-en">I lost my key.</p>
+  <p class="ob-zh" id="ob-zh">小人走回过去，就站在事件现场。至于现在钥匙找没找到，这句话不管。</p>
+  <figcaption id="observer-caption">小人 = 观察点 R；竖虚线 = 说话此刻 S；琥珀色 = 事件 E；蓝色虚线箭头 = 回头看（完成体）。</figcaption>
+  <script>
+  (function () {
+    var scenes = [
+      { en: "I lost my key.", zh: "小人走回过去，就站在事件现场。至于现在钥匙找没找到，这句话不管。", p: 240, d: 240, s: false, r: "R", e: "事件 E" },
+      { en: "I've lost my key.", zh: "小人留在此刻，回头看之前的事。所以这句话说的是现在：钥匙还没找到，我现在有麻烦。", p: 460, d: 240, s: true, r: "R = S", e: "事件 E" },
+      { en: "When I arrived, the train had left.", zh: "小人先站到过去某一点（到站），再从那里回头看更早的事。", p: 340, d: 200, s: true, r: "R 到站", e: "车开走 E" },
+      { en: "By six, I'll have finished.", zh: "小人被派到将来某一点（六点），从那里回头看：到那时事情已经做完。", p: 600, d: 530, s: true, r: "R 六点", e: "做完 E" },
+      { en: "She was crossing the street when the car hit her.", zh: "小人站在事件过程的中间（被撞那一刻），所以马路还没过完。", p: 280, b: [180, 380], s: false, r: "R 被撞", e: "过马路 E" },
+      { en: "I've been waiting for two hours.", zh: "小人站在此刻，回头看一段一直延续到脚下的过程：完成（回看）加进行（过程）。", p: 460, b: [240, 460], s: true, r: "R = S", e: "一直在等 E" },
+      { en: "He must have left.", zh: "小人在此刻做判断，被判断的事在过去。情态动词占了时的位置，过去只能交给 have。", p: 460, d: 240, s: true, hollow: true, r: "R = S（判断）", e: "走了？E" }
+    ];
+    var root = document.currentScript.closest(".observer");
+    var q = function (id) { return root.querySelector("#" + id); };
+    var buttons = root.querySelectorAll("button[data-i]");
+    function show(i) {
+      var c = scenes[i], ex;
+      buttons.forEach(function (b, j) { b.setAttribute("aria-pressed", j === i ? "true" : "false"); });
+      q("ob-person").style.transform = "translateX(" + c.p + "px)";
+      var dot = q("ob-dot"), bar = q("ob-bar"), elab = q("ob-elab"), look = q("ob-look");
+      if (c.b) {
+        bar.setAttribute("x", c.b[0]); bar.setAttribute("width", c.b[1] - c.b[0]);
+        dot.setAttribute("opacity", 0); ex = c.b[0];
+        elab.setAttribute("x", (c.b[0] + c.b[1]) / 2);
+      } else {
+        bar.setAttribute("width", 0); dot.setAttribute("opacity", 1);
+        dot.setAttribute("cx", c.d); dot.setAttribute("fill", c.hollow ? "none" : "var(--event)");
+        ex = c.d; elab.setAttribute("x", c.d);
+      }
+      elab.textContent = c.e;
+      look.setAttribute("d", "M" + (c.p - 14) + " 92L" + (ex + 6) + " 158");
+      look.setAttribute("opacity", c.s ? 1 : 0);
+      q("ob-rlab").textContent = c.r;
+      q("ob-en").textContent = c.en;
+      q("ob-zh").textContent = c.zh;
+    }
+    buttons.forEach(function (b) {
+      b.addEventListener("click", function () { show(Number(b.getAttribute("data-i"))); });
+    });
+  })();
+  </script>
+</figure>

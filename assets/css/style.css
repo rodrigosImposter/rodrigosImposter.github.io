@@ -1,0 +1,171 @@
+:root {
+  --paper: #F5F7F8;
+  --ink: #1D2430;
+  --muted: #5B6573;
+  --rule: #D9DEE3;
+  --wash: #EAEEF1;
+  --look: #2747C9;
+  --event: #D9821A;
+  --event-wash: rgba(217, 130, 26, 0.18);
+  --serif: "Source Serif 4", "Noto Serif SC", "Songti SC", serif;
+  --sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --measure: 40rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #12161C;
+    --ink: #E3E7EC;
+    --muted: #98A2AF;
+    --rule: #2B323C;
+    --wash: #1A2028;
+    --look: #8FA6FF;
+    --event: #F0A84A;
+    --event-wash: rgba(240, 168, 74, 0.22);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.125rem;
+  line-height: 1.85;
+}
+
+a { color: var(--look); text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--look); outline-offset: 3px; }
+
+.site-header,
+main,
+.site-footer {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+}
+.site-title { color: var(--ink); text-decoration: none; font-weight: 700; }
+.site-header nav { display: flex; gap: 1.25rem; }
+.site-header nav a { color: var(--muted); text-decoration: none; }
+.site-header nav a:hover { color: var(--ink); }
+
+h1, h2, h3 {
+  font-family: var(--sans);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
+h1 { font-size: 2rem; margin: 0 0 0.75rem; }
+h2 { font-size: 1.4rem; margin: 3rem 0 1rem; }
+h3 { font-size: 1.1rem; margin: 2rem 0 0.75rem; }
+
+p, ul, ol, table, details { margin: 0 0 1.25rem; }
+ul, ol { padding-left: 1.4rem; }
+li { margin-bottom: 0.35rem; }
+li > ul, li > ol { margin: 0.35rem 0 0; }
+strong { font-weight: 600; }
+em { font-style: italic; }
+
+/* index */
+.intro { padding: 1rem 0 2.5rem; border-bottom: 1px solid var(--rule); }
+.intro p { color: var(--muted); margin: 0; }
+.post-item { padding: 1.75rem 0; border-bottom: 1px solid var(--rule); }
+.post-item time { font-family: var(--sans); font-size: 0.85rem; color: var(--muted); }
+.post-item h2 { margin: 0.25rem 0 0.5rem; font-size: 1.3rem; }
+.post-item h2 a { color: var(--ink); text-decoration: none; }
+.post-item h2 a:hover { color: var(--look); }
+.post-item p { margin: 0; color: var(--muted); }
+
+/* post */
+.post-header { padding: 1rem 0 2rem; border-bottom: 1px solid var(--rule); margin-bottom: 2rem; }
+.post-lede { font-size: 1.15rem; color: var(--muted); margin-bottom: 0.75rem; }
+.post-meta { font-family: var(--sans); font-size: 0.85rem; color: var(--muted); margin: 0; }
+
+.post-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  display: block;
+  overflow-x: auto;
+}
+.post-body th, .post-body td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.55rem 0.75rem 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.post-body th { font-family: var(--sans); font-weight: 500; font-size: 0.85rem; color: var(--muted); }
+
+.post-body blockquote {
+  margin: 0 0 1.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--wash);
+  border-left: 3px solid var(--look);
+}
+.post-body blockquote p:last-child { margin-bottom: 0; }
+
+.post-body code {
+  font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  background: var(--wash);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+
+/* worked examples and answers */
+.example {
+  margin: 0 0 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+}
+.example > :last-child { margin-bottom: 0; }
+
+details {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.75rem 1.25rem;
+}
+details summary {
+  cursor: pointer;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+details[open] summary { margin-bottom: 0.75rem; }
+
+.page { padding-bottom: 2rem; }
+
+.site-footer {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+  border-top: 1px solid var(--rule);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.site-footer p { margin: 0 0 0.35rem; }
+
+@media (max-width: 600px) {
+  body { font-size: 1.05rem; }
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.25rem; }
+}
