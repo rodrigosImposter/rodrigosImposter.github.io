@@ -10,10 +10,12 @@
   --serif: "Source Serif 4", "Noto Serif SC", "Songti SC", serif;
   --sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   --measure: 40rem;
+  color-scheme: light;
 }
 
+/* 深色：跟随系统，除非读者手动选了浅色；或读者手动选了深色 */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --paper: #12161C;
     --ink: #E3E7EC;
     --muted: #98A2AF;
@@ -22,7 +24,19 @@
     --look: #8FA6FF;
     --event: #F0A84A;
     --event-wash: rgba(240, 168, 74, 0.22);
+    color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --paper: #12161C;
+  --ink: #E3E7EC;
+  --muted: #98A2AF;
+  --rule: #2B323C;
+  --wash: #1A2028;
+  --look: #8FA6FF;
+  --event: #F0A84A;
+  --event-wash: rgba(240, 168, 74, 0.22);
+  color-scheme: dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -64,6 +78,27 @@ main,
 .site-header nav { display: flex; gap: 1.25rem; }
 .site-header nav a { color: var(--muted); text-decoration: none; }
 .site-header nav a:hover { color: var(--ink); }
+.site-header nav { align-items: baseline; }
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.theme-toggle:hover { color: var(--ink); border-color: var(--muted); }
+.theme-toggle svg { width: 1rem; height: 1rem; }
+.theme-toggle .icon-sun { display: none; }
+:root[data-theme-effective="dark"] .theme-toggle .icon-sun { display: block; }
+:root[data-theme-effective="dark"] .theme-toggle .icon-moon { display: none; }
 
 h1, h2, h3 {
   font-family: var(--sans);
