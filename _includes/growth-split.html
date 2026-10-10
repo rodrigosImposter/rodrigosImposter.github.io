@@ -1,0 +1,114 @@
+<figure class="gsplit" aria-labelledby="gsplit-caption">
+  <style>
+    .gsplit { margin: 0 0 2rem; padding: 1rem 1.25rem 1.25rem; border: 1px solid var(--rule); border-radius: 6px; font-family: var(--sans); }
+    .gsplit .gs-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
+    .gsplit label { font-size: 0.9rem; color: var(--muted); white-space: nowrap; }
+    .gsplit input[type="range"] { flex: 1; min-width: 0; accent-color: var(--look); }
+    .gsplit .gs-val { font-weight: 700; color: var(--look); min-width: 4.2em; text-align: right; font-variant-numeric: tabular-nums; }
+    .gsplit .gs-btns { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem; }
+    .gsplit button {
+      font-family: var(--sans); font-size: 0.85rem; line-height: 1.4;
+      padding: 0.3rem 0.65rem; border-radius: 4px; cursor: pointer;
+      border: 1px solid var(--rule); background: transparent; color: var(--muted);
+    }
+    .gsplit button:hover { color: var(--ink); border-color: var(--muted); }
+    .gsplit button[aria-pressed="true"] { background: var(--look); border-color: var(--look); color: var(--paper); }
+    .gsplit svg { width: 100%; height: auto; display: block; overflow: visible; }
+    .gsplit .gs-out { margin: 0.75rem 0 0; font-size: 0.95rem; line-height: 1.7; color: var(--ink); }
+    .gsplit .gs-out p { margin: 0 0 0.35rem; }
+    .gsplit .gs-out .gs-note { color: var(--muted); }
+    .gsplit figcaption { font-size: 0.8rem; color: var(--muted); margin-top: 0.75rem; }
+    @media (max-width: 600px) {
+      .gsplit { padding: 0.75rem; }
+      .gsplit svg text { font-size: 24px; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .gsplit rect, .gsplit line, .gsplit text { transition: x 0.25s ease, width 0.25s ease, x1 0.25s ease, x2 0.25s ease; }
+    }
+  </style>
+  <div class="gs-row">
+    <label for="gs-range">增长率 r</label>
+    <input id="gs-range" type="range" min="0" max="100" step="0.1" value="25">
+    <span class="gs-val" id="gs-val">25.0%</span>
+  </div>
+  <div class="gs-btns" role="group" aria-label="常用增长率">
+    <button type="button" data-r="4.8">4.8%</button>
+    <button type="button" data-r="8.3">8.3%</button>
+    <button type="button" data-r="12.5">12.5%</button>
+    <button type="button" data-r="25" aria-pressed="true">25%</button>
+    <button type="button" data-r="38.7">38.7%</button>
+    <button type="button" data-r="50">50%</button>
+    <button type="button" data-r="100">100%</button>
+  </div>
+  <svg viewBox="0 0 640 160" role="img" aria-label="一条代表现期的长条，被分成基期和增长量两段；下方虚线条是错误算法“现期乘 r”的长度">
+    <text x="0" y="18" font-size="13" fill="var(--muted)">现期 = 基期 + 增长量</text>
+    <rect id="gs-base" x="0" y="30" width="512" height="40" fill="var(--wash)" stroke="var(--muted)" stroke-width="1"/>
+    <rect id="gs-inc" x="512" y="30" width="128" height="40" fill="var(--event-wash)" stroke="var(--event)" stroke-width="1.25"/>
+    <text id="gs-base-lab" x="256" y="56" text-anchor="middle" font-size="13" fill="var(--ink)">基期</text>
+    <text id="gs-inc-lab" x="576" y="56" text-anchor="middle" font-size="13" fill="var(--ink)">增长量</text>
+    <text x="0" y="108" font-size="13" fill="var(--muted)">误：现期 × r（右端对齐，比琥珀色长）</text>
+    <rect id="gs-wrong" x="480" y="120" width="160" height="18" fill="none" stroke="var(--look)" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <line id="gs-guide" x1="512" y1="70" x2="512" y2="144" stroke="var(--event)" stroke-width="1" stroke-dasharray="2 3"/>
+  </svg>
+  <div class="gs-out" aria-live="polite">
+    <p id="gs-l1"></p>
+    <p id="gs-l2"></p>
+    <p class="gs-note" id="gs-l3"></p>
+  </div>
+  <figcaption id="gsplit-caption">整条 = 现期。灰色 = 基期 = 现期 ÷ (1 + r)；琥珀色 = 增长量 = 现期 × r ÷ (1 + r)。蓝色虚线 = 错误的“现期 × r”。</figcaption>
+  <script>
+  (function () {
+    var root = document.currentScript.closest(".gsplit");
+    var W = 640;
+    var narrow = window.matchMedia("(max-width: 600px)");
+    var range = root.querySelector("#gs-range");
+    var val = root.querySelector("#gs-val");
+    var btns = root.querySelectorAll("button[data-r]");
+    function el(id) { return root.querySelector("#" + id); }
+    function pct(x, d) { return (x * 100).toFixed(d) + "%"; }
+    function show(rp) {
+      var r = rp / 100;
+      var incShare = r / (1 + r);
+      var incW = W * incShare;
+      var baseW = W - incW;
+      var wrongW = Math.min(W, W * r);
+      el("gs-base").setAttribute("width", baseW);
+      el("gs-inc").setAttribute("x", baseW);
+      el("gs-inc").setAttribute("width", incW);
+      el("gs-base-lab").setAttribute("x", baseW / 2);
+      var incLab = el("gs-inc-lab");
+      incLab.setAttribute("x", baseW + incW / 2);
+      incLab.setAttribute("opacity", incW > (narrow.matches ? 90 : 56) ? 1 : 0);
+      el("gs-wrong").setAttribute("x", W - wrongW);
+      el("gs-wrong").setAttribute("width", wrongW);
+      el("gs-guide").setAttribute("x1", baseW);
+      el("gs-guide").setAttribute("x2", baseW);
+      val.textContent = rp.toFixed(1) + "%";
+      el("gs-l1").textContent = "基期占现期 1 ÷ (1 + r) = " + pct(1 / (1 + r), 1) + "；增长量占现期 r ÷ (1 + r) = " + pct(incShare, 1) + "。";
+      el("gs-l2").textContent = r > 0
+        ? "“现期 × r”= " + pct(r, 1) + " 的现期，是正确增长量的 " + (1 + r).toFixed(3) + " 倍，也就是偏大 r。"
+        : "r = 0：没有增长，现期就是基期。";
+      if (r > 0) {
+        var n = Math.round(1 / r);
+        var approx = 1 / n;
+        var err = Math.abs(approx - r) / r;
+        el("gs-l3").textContent = "r ≈ 1/" + n + "（= " + pct(approx, 2) + "，与 r 相差 " + pct(err, 1) + "），所以增长量 ≈ 现期 ÷ " + (n + 1) + "。";
+      } else {
+        el("gs-l3").textContent = "";
+      }
+      btns.forEach(function (b) {
+        b.setAttribute("aria-pressed", Number(b.getAttribute("data-r")) === rp ? "true" : "false");
+      });
+    }
+    range.addEventListener("input", function () { show(Number(range.value)); });
+    btns.forEach(function (b) {
+      b.addEventListener("click", function () {
+        var rp = Number(b.getAttribute("data-r"));
+        range.value = rp;
+        show(rp);
+      });
+    });
+    show(Number(range.value));
+  })();
+  </script>
+</figure>
