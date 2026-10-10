@@ -3,11 +3,8 @@ description: 从问题出发，讲清楚每条规则为什么是这样。
 lang: zh-CN
 author: rodrigos
 
-# 仓库名是 rodrigos.github.io，属于账号 rodrigosImposter，
-# 所以网站地址是 https://rodrigosimposter.github.io/rodrigos.github.io/
-# 如果把仓库改名为 rodrigosImposter.github.io，请把 baseurl 改成 ""
 url: "https://rodrigosimposter.github.io"
-baseurl: "/rodrigos.github.io"
+baseurl: ""
 
 permalink: /:year/:month/:title/
 timezone: Asia/Shanghai

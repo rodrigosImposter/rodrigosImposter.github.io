@@ -2,7 +2,7 @@
 
 用 Jekyll 搭建、由 GitHub Pages 自动发布的学习笔记博客。
 
-网址：https://rodrigosimposter.github.io/rodrigos.github.io/
+网址：https://rodrigosimposter.github.io/
 
 ## 写一篇新文章
 
