@@ -1,0 +1,285 @@
+<figure class="sst" aria-labelledby="sst-caption">
+  <style>
+    .sst { margin: 0 0 2rem; padding: 1rem 1.25rem 1.25rem; border: 1px solid var(--rule); border-radius: 6px; font-family: var(--sans); }
+    .sst .ss-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: 0.6rem; }
+    .sst .ss-label { font-size: 0.8rem; color: var(--muted); margin-right: 0.2rem; min-width: 2.5em; }
+    .sst button {
+      font-family: var(--sans); font-size: 0.9rem; line-height: 1.4;
+      padding: 0.3rem 0.7rem; border-radius: 4px; cursor: pointer;
+      border: 1px solid var(--rule); background: transparent; color: var(--ink);
+    }
+    .sst button:hover:not(:disabled) { border-color: var(--muted); }
+    .sst button:disabled { color: var(--muted); opacity: 0.5; cursor: default; }
+    .sst button[aria-pressed="true"] { background: var(--wash); border-color: var(--muted); font-weight: 700; }
+    .sst button.ss-next { background: var(--look); border-color: var(--look); color: var(--paper); }
+    .sst button.ss-next:disabled { background: transparent; color: var(--muted); border-color: var(--rule); }
+    .sst .ss-count { margin-left: auto; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .sst .ss-stats { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; margin: 0.25rem 0 0.5rem; font-size: 0.95rem; color: var(--muted); }
+    .sst .ss-stats b { color: var(--ink); font-variant-numeric: tabular-nums; font-size: 1.1rem; }
+    .sst .ss-text { margin: 0 0 0.5rem; font-size: 1rem; line-height: 1.7; color: var(--ink); min-height: 3.4em; }
+    .sst svg { width: 100%; height: auto; display: block; margin-bottom: 0.5rem; }
+    .sst svg text { font-size: 16px; font-family: var(--sans); }
+    .sst svg text.ss-idx { font-size: 12px; }
+    .sst figcaption { font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; line-height: 1.6; }
+    .sst .ss-key { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 2px; vertical-align: -0.05em; margin: 0 0.15em 0 0.4em; }
+    @media (max-width: 600px) {
+      .sst { padding: 0.75rem; }
+      .sst svg text { font-size: 23px; }
+      .sst svg text.ss-idx { font-size: 18px; }
+      .sst .ss-count { margin-left: 0; width: 100%; }
+    }
+  </style>
+  <div class="ss-bar ss-algos"><span class="ss-label">算法</span></div>
+  <div class="ss-bar ss-inputs"><span class="ss-label">输入</span></div>
+  <div class="ss-stats" aria-live="polite">
+    <span>比较 <b class="ss-c">0</b> 次</span>
+    <span>交换 <b class="ss-s">0</b> 次</span>
+    <span>剩余逆序对 <b class="ss-i">0</b> 个</span>
+  </div>
+  <p class="ss-text"></p>
+  <svg viewBox="0 0 640 250" role="img" aria-label="排序过程的柱状图，每根柱子上标着它的数值，下方是下标"></svg>
+  <div class="ss-bar">
+    <button type="button" class="ss-prev">上一步</button>
+    <button type="button" class="ss-next">下一步</button>
+    <button type="button" class="ss-play">自动播放</button>
+    <button type="button" class="ss-end">跳到结尾</button>
+    <button type="button" class="ss-reset">重来</button>
+    <span class="ss-count" aria-hidden="true"></span>
+  </div>
+  <figcaption id="sst-caption">柱子上的数字是它的值，下方小字是下标。<span class="ss-key" style="border: 2px solid var(--look);"></span>蓝框 = 正在比较<span class="ss-key" style="background: var(--event-wash); border: 1px solid var(--event);"></span>橙色 = 刚刚交换<span class="ss-key" style="background: var(--paper); border: 1px dashed var(--muted);"></span>虚线 = 位置已经确定。选择排序下方的“最小”箭头是指针。冒泡排序按“从前往后、带提前结束标志”的写法。</figcaption>
+  <script>
+  (function () {
+    var root = document.currentScript.closest(".sst");
+    var svg = root.querySelector("svg");
+    var NS = "http://www.w3.org/2000/svg";
+    var narrow = window.matchMedia("(max-width: 600px)");
+
+    var INPUTS = [
+      ["random", "随机", [6, 9, 2, 8, 1, 10, 4, 7, 3, 5]],
+      ["near", "差不多有序", [1, 2, 4, 3, 5, 6, 8, 7, 9, 10]],
+      ["rev", "逆序", [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]],
+      ["sorted", "已排好", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
+    ];
+    var ALGOS = [["sel", "选择"], ["ins", "插入"], ["bub", "冒泡"], ["shell", "希尔"]];
+
+    function inversions(a) {
+      var n = 0;
+      for (var i = 0; i < a.length; i++) for (var j = i + 1; j < a.length; j++) if (a[i] > a[j]) n++;
+      return n;
+    }
+    function fixedNone(n) { var f = []; for (var i = 0; i < n; i++) f.push(false); return f; }
+    function fixedPrefix(n, k) { var f = fixedNone(n); for (var i = 0; i < k; i++) f[i] = true; return f; }
+    function fixedSuffix(n, k) { var f = fixedNone(n); for (var i = n - k; i < n; i++) f[i] = true; return f; }
+
+    // Each step: a (array snapshot), cmp (indices compared), swp (indices just swapped),
+    // ptr (selection's minimum pointer), fixed (positions already final), c, s, text.
+    function rec(list, a, o) {
+      list.push({ a: a.slice(), cmp: o.cmp || [], swp: o.swp || [], ptr: (o.ptr === undefined ? -1 : o.ptr),
+        fixed: o.fixed || fixedNone(a.length), c: o.c, s: o.s, text: o.text });
+    }
+
+    function selection(a0) {
+      var a = a0.slice(), n = a.length, c = 0, s = 0, L = [];
+      rec(L, a, { c: 0, s: 0, text: "选择排序：每一轮从还没排定的部分里找出最小值，放到这部分的最前面。指针只记位置，比较时不动数据。" });
+      for (var i = 0; i < n - 1; i++) {
+        var m = i;
+        for (var j = i + 1; j < n; j++) {
+          c++;
+          var smaller = a[j] < a[m];
+          var t = "第 " + (i + 1) + " 轮：" + a[j] + " 和当前最小值 " + a[m] + " 比较，" + (smaller ? "更小，指针跳到 " + a[j] + "。" : "不更小，指针不动。");
+          var old = m;
+          if (smaller) m = j;
+          rec(L, a, { cmp: [old, j], ptr: m, fixed: fixedPrefix(n, i), c: c, s: s, text: t });
+        }
+        if (m !== i) {
+          var v = a[m]; a[m] = a[i]; a[i] = v; s++;
+          rec(L, a, { swp: [i, m], fixed: fixedPrefix(n, i + 1), c: c, s: s,
+            text: "第 " + (i + 1) + " 轮结束：最小值 " + a[i] + " 和下标 " + i + " 交换。这一轮只交换这一次。" });
+        } else {
+          rec(L, a, { ptr: i, fixed: fixedPrefix(n, i + 1), c: c, s: s,
+            text: "第 " + (i + 1) + " 轮结束：最小值 " + a[i] + " 本来就在下标 " + i + "，不交换（408 写法）。" });
+        }
+      }
+      rec(L, a, { fixed: fixedPrefix(n, n), c: c, s: s, text: "排好了。不管输入长什么样，选择排序的比较次数都是 n(n−1)/2 = " + (n * (n - 1) / 2) + "。" });
+      return L;
+    }
+
+    function insertion(a0) {
+      var a = a0.slice(), n = a.length, c = 0, s = 0, L = [];
+      rec(L, a, { fixed: fixedPrefix(n, 1), c: 0, s: 0, text: "插入排序：左边（虚线部分）始终有序。新来的数和左邻比较，左邻更大就交换，遇到不比自己大的就停。" });
+      for (var i = 1; i < n; i++) {
+        var j = i;
+        while (j > 0) {
+          c++;
+          if (a[j] < a[j - 1]) {
+            var v = a[j]; a[j] = a[j - 1]; a[j - 1] = v; s++;
+            rec(L, a, { swp: [j - 1, j], fixed: fixedPrefix(n, i + 1), c: c, s: s,
+              text: "左邻 " + a[j] + " 比 " + a[j - 1] + " 大，交换。消掉了恰好 1 个逆序对。" });
+            j--;
+          } else {
+            rec(L, a, { cmp: [j - 1, j], fixed: fixedPrefix(n, i + 1), c: c, s: s,
+              text: a[j - 1] + " 不比 " + a[j] + " 大。左边有序，再往左的数只会更小，所以停下。" });
+            break;
+          }
+        }
+        if (j === 0 && i > 0 && L[L.length - 1].swp.length) {
+          L[L.length - 1].text += " 已经换到最前面，停下。";
+        }
+      }
+      rec(L, a, { fixed: fixedPrefix(n, n), c: c, s: s, text: "排好了。交换次数 " + s + " 正好等于开始时的逆序对数。" });
+      return L;
+    }
+
+    function bubble(a0) {
+      var a = a0.slice(), n = a.length, c = 0, s = 0, L = [];
+      rec(L, a, { c: 0, s: 0, text: "冒泡排序：每一趟从前往后比较相邻两数，前大后小就交换，最大的会被一路带到末尾。" });
+      for (var p = 0; p < n - 1; p++) {
+        var swapped = false;
+        for (var j = 0; j < n - 1 - p; j++) {
+          c++;
+          if (a[j] > a[j + 1]) {
+            var v = a[j]; a[j] = a[j + 1]; a[j + 1] = v; s++; swapped = true;
+            rec(L, a, { swp: [j, j + 1], fixed: fixedSuffix(n, p), c: c, s: s,
+              text: "第 " + (p + 1) + " 趟：" + a[j + 1] + " 比 " + a[j] + " 大，交换。" });
+          } else {
+            rec(L, a, { cmp: [j, j + 1], fixed: fixedSuffix(n, p), c: c, s: s,
+              text: "第 " + (p + 1) + " 趟：" + a[j] + " 不比 " + a[j + 1] + " 大，不交换。" });
+          }
+        }
+        if (!swapped) {
+          rec(L, a, { fixed: fixedSuffix(n, n), c: c, s: s,
+            text: "第 " + (p + 1) + " 趟一次都没交换：每对相邻数都有序，整个数组就有序了，提前结束。" });
+          return L;
+        }
+        rec(L, a, { fixed: fixedSuffix(n, p + 1), c: c, s: s,
+          text: "第 " + (p + 1) + " 趟结束：" + a[n - 1 - p] + " 到了它的最终位置。" });
+      }
+      rec(L, a, { fixed: fixedSuffix(n, n), c: c, s: s, text: "排好了。交换次数 " + s + " 同样等于开始时的逆序对数。" });
+      return L;
+    }
+
+    function shell(a0) {
+      var a = a0.slice(), n = a.length, c = 0, s = 0, L = [];
+      var hs = [], h = 1;
+      while (h < Math.floor(n / 3)) h = 3 * h + 1;
+      while (h >= 1) { hs.push(h); h = Math.floor(h / 3); }
+      rec(L, a, { c: 0, s: 0, text: "希尔排序：增量依次为 " + hs.join("、") + "（Sedgewick 的 3x+1 序列）。先做大步长的 h-排序，最后 h = 1 就是普通插入排序。" });
+      for (var k = 0; k < hs.length; k++) {
+        h = hs[k];
+        rec(L, a, { c: c, s: s, text: h === 1
+          ? "h = 1：对整个数组做普通插入排序，保证最终有序。此时剩下 " + inversions(a) + " 个逆序对。"
+          : "开始 h = " + h + " 的一趟：每个数只和左边下标差 " + h + " 的数比较、交换。" });
+        for (var i = h; i < n; i++) {
+          var j = i;
+          while (j >= h) {
+            c++;
+            if (a[j] < a[j - h]) {
+              var v = a[j]; a[j] = a[j - h]; a[j - h] = v; s++;
+              rec(L, a, { swp: [j - h, j], c: c, s: s,
+                text: "h = " + h + "：" + a[j] + " 和下标差 " + h + " 的 " + a[j - h] + " 交换。" + (h > 1 ? "看右上角，一次可能消掉不止一个逆序对。" : "") });
+              j -= h;
+            } else {
+              rec(L, a, { cmp: [j - h, j], c: c, s: s,
+                text: "h = " + h + "：" + a[j - h] + " 不比 " + a[j] + " 大，停下。" });
+              break;
+            }
+          }
+        }
+        if (h > 1) {
+          rec(L, a, { c: c, s: s, text: "h = " + h + " 这一趟结束，数组现在是 " + h + "-有序的：下标差 " + h + " 的数各自排好了，但整体还没排好。" });
+        }
+      }
+      rec(L, a, { fixed: fixedPrefix(n, n), c: c, s: s, text: "排好了。和直接插入排序比一比比较次数和交换次数。" });
+      return L;
+    }
+
+    var GEN = { sel: selection, ins: insertion, bub: bubble, shell: shell };
+    var algo = "ins", input = "random", steps = [], cur = 0, timer = null;
+
+    function mk(tag, attrs, text) {
+      var e = document.createElementNS(NS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      if (text !== undefined) e.textContent = text;
+      return e;
+    }
+
+    function render() {
+      var st = steps[cur], n = st.a.length;
+      var W = narrow.matches ? 420 : 640, left = narrow.matches ? 6 : 12, gap = narrow.matches ? 5 : 8, bw = (W - 2 * left - gap * (n - 1)) / n, base = 190;
+      svg.setAttribute("viewBox", "0 0 " + W + " 250");
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      for (var i = 0; i < n; i++) {
+        var v = st.a[i], hgt = 18 + v * 14, x = left + i * (bw + gap), y = base - hgt;
+        var fill = "var(--wash)", stroke = "var(--muted)", sw = 1, dash = "", tc = "var(--ink)";
+        if (st.fixed[i]) { fill = "var(--paper)"; dash = "4 3"; tc = "var(--muted)"; }
+        if (st.cmp.indexOf(i) >= 0) { stroke = "var(--look)"; sw = 3; dash = ""; tc = "var(--ink)"; }
+        if (st.swp.indexOf(i) >= 0) { fill = "var(--event-wash)"; stroke = "var(--event)"; sw = 3; dash = ""; tc = "var(--ink)"; }
+        var r = mk("rect", { x: x, y: y, width: bw, height: hgt, rx: 4, fill: fill, stroke: stroke, "stroke-width": sw });
+        if (dash) r.setAttribute("stroke-dasharray", dash);
+        svg.appendChild(r);
+        svg.appendChild(mk("text", { x: x + bw / 2, y: y - 7, "text-anchor": "middle", fill: tc }, String(v)));
+        svg.appendChild(mk("text", { "class": "ss-idx", x: x + bw / 2, y: base + 16, "text-anchor": "middle", fill: "var(--muted)" }, String(i)));
+        if (st.ptr === i) {
+          svg.appendChild(mk("path", { d: "M " + (x + bw / 2) + " " + (base + 22) + " l -7 10 l 14 0 z", fill: "var(--look)" }));
+          svg.appendChild(mk("text", { "class": "ss-idx", x: x + bw / 2, y: base + 37, "text-anchor": "middle", "dominant-baseline": "hanging", fill: "var(--look)" }, "最小"));
+        }
+      }
+      root.querySelector(".ss-c").textContent = st.c;
+      root.querySelector(".ss-s").textContent = st.s;
+      root.querySelector(".ss-i").textContent = inversions(st.a);
+      root.querySelector(".ss-text").textContent = st.text;
+      root.querySelector(".ss-count").textContent = "第 " + (cur + 1) + " / " + steps.length + " 步";
+      root.querySelector(".ss-prev").disabled = cur === 0;
+      root.querySelector(".ss-next").disabled = cur === steps.length - 1;
+      root.querySelector(".ss-end").disabled = cur === steps.length - 1;
+      if (cur === steps.length - 1) stop();
+    }
+
+    function stop() {
+      if (timer) { clearInterval(timer); timer = null; }
+      root.querySelector(".ss-play").textContent = "自动播放";
+    }
+    function rebuild() {
+      stop();
+      var arr = null;
+      for (var i = 0; i < INPUTS.length; i++) if (INPUTS[i][0] === input) arr = INPUTS[i][2];
+      steps = GEN[algo](arr);
+      cur = 0;
+      var bs = root.querySelectorAll("button[data-algo]");
+      for (var j = 0; j < bs.length; j++) bs[j].setAttribute("aria-pressed", bs[j].getAttribute("data-algo") === algo ? "true" : "false");
+      var bi = root.querySelectorAll("button[data-input]");
+      for (var k = 0; k < bi.length; k++) bi[k].setAttribute("aria-pressed", bi[k].getAttribute("data-input") === input ? "true" : "false");
+      render();
+    }
+
+    function addButtons(sel, list, attr, onPick) {
+      var bar = root.querySelector(sel);
+      list.forEach(function (it) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.textContent = it[1];
+        b.setAttribute(attr, it[0]);
+        b.addEventListener("click", function () { onPick(it[0]); });
+        bar.appendChild(b);
+      });
+    }
+    addButtons(".ss-algos", ALGOS, "data-algo", function (v) { algo = v; rebuild(); });
+    addButtons(".ss-inputs", INPUTS, "data-input", function (v) { input = v; rebuild(); });
+
+    root.querySelector(".ss-prev").addEventListener("click", function () { stop(); if (cur > 0) { cur--; render(); } });
+    root.querySelector(".ss-next").addEventListener("click", function () { stop(); if (cur < steps.length - 1) { cur++; render(); } });
+    root.querySelector(".ss-end").addEventListener("click", function () { stop(); cur = steps.length - 1; render(); });
+    root.querySelector(".ss-reset").addEventListener("click", function () { stop(); cur = 0; render(); });
+    root.querySelector(".ss-play").addEventListener("click", function () {
+      if (timer) { stop(); return; }
+      if (cur === steps.length - 1) cur = 0;
+      this.textContent = "暂停";
+      timer = setInterval(function () {
+        if (cur < steps.length - 1) { cur++; render(); } else { stop(); }
+      }, 450);
+    });
+    if (narrow.addEventListener) { narrow.addEventListener("change", render); }
+    rebuild();
+  })();
+  </script>
+</figure>
