@@ -1,0 +1,74 @@
+<figure class="lflow" aria-labelledby="lflow-caption">
+  <style>
+    .lflow { margin: 0 0 2rem; padding: 1rem 1.25rem; border: 1px solid var(--rule); border-radius: 6px; font-family: var(--sans); }
+    .lflow .lf-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .lflow svg { width: 100%; height: auto; display: block; }
+    .lflow .lf-box { fill: none; stroke: var(--muted); stroke-width: 1; }
+    .lflow .lf-main { fill: var(--look); fill-opacity: 0.12; stroke: var(--look); stroke-width: 2; }
+    .lflow .lf-line { fill: none; stroke: var(--muted); stroke-width: 1.25; }
+    .lflow .lf-head { fill: var(--muted); }
+    .lflow .lf-t { fill: var(--ink); font-size: 15px; }
+    .lflow .lf-strong { font-weight: 700; }
+    .lflow .lf-q { fill: var(--muted); font-size: 13px; }
+    .lflow figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 0.75rem; }
+    .lflow .lf-hint { display: none; }
+    @media (max-width: 600px) {
+      .lflow { padding: 0.75rem; }
+      .lflow .lf-hint { display: inline; }
+      .lflow svg { min-width: 640px; }
+    }
+  </style>
+  <div class="lf-scroll">
+    <svg viewBox="0 0 760 352" role="img" aria-label="问题阶梯流程：确认目标、选资料、读原文，然后循环提问；答不上来就逐条检查再答，答上来就自己推出规则，台阶走完后收尾做真题。">
+      <defs>
+        <marker id="lf-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path class="lf-head" d="M0 0L10 5L0 10z"/>
+        </marker>
+      </defs>
+
+      <g class="lf-line" marker-end="url(#lf-arrow)">
+        <path d="M230 40H280" marker-end="url(#lf-arrow)"/>
+        <path d="M480 40H530" marker-end="url(#lf-arrow)"/>
+        <path d="M630 64V146" marker-end="url(#lf-arrow)"/>
+        <path d="M530 170H450" marker-end="url(#lf-arrow)"/>
+        <path d="M310 170H230" marker-end="url(#lf-arrow)"/>
+        <path d="M380 210V266" marker-end="url(#lf-arrow)"/>
+        <path d="M480 290H630V194" marker-end="url(#lf-arrow)"/>
+        <path d="M130 146V105H570V146" marker-end="url(#lf-arrow)"/>
+        <path d="M130 194V266" marker-end="url(#lf-arrow)"/>
+      </g>
+
+      <rect class="lf-box" x="30" y="16" width="200" height="48" rx="8"/>
+      <text class="lf-t" x="130" y="45" text-anchor="middle">1 确认目标</text>
+
+      <rect class="lf-box" x="280" y="16" width="200" height="48" rx="8"/>
+      <text class="lf-t" x="380" y="45" text-anchor="middle">2 选资料：AI 列，我拍板</text>
+
+      <rect class="lf-box" x="530" y="16" width="200" height="48" rx="8"/>
+      <text class="lf-t" x="630" y="45" text-anchor="middle">3 读原文，列出定义冲突</text>
+
+      <rect class="lf-main" x="530" y="146" width="200" height="48" rx="8"/>
+      <text class="lf-t lf-strong" x="630" y="175" text-anchor="middle">4 问一个一句话能答的问题</text>
+
+      <polygon class="lf-box" points="310,170 380,130 450,170 380,210"/>
+      <text class="lf-t" x="380" y="175" text-anchor="middle">答得上来？</text>
+
+      <rect class="lf-box" x="30" y="146" width="200" height="48" rx="8"/>
+      <text class="lf-t" x="130" y="175" text-anchor="middle">自己推出规则，再起名字</text>
+
+      <rect class="lf-box" x="280" y="266" width="200" height="48" rx="8"/>
+      <text class="lf-t" x="380" y="295" text-anchor="middle">5 逐条检查违反了哪条规则</text>
+
+      <rect class="lf-box" x="30" y="266" width="200" height="48" rx="8"/>
+      <text class="lf-t" x="130" y="295" text-anchor="middle">6 收尾：列规则，做真题</text>
+
+      <text class="lf-q" x="270" y="162" text-anchor="middle">能</text>
+      <text class="lf-q" x="390" y="242">不能</text>
+      <text class="lf-q" x="555" y="282" text-anchor="middle">再答一次</text>
+      <text class="lf-q" x="350" y="97" text-anchor="middle">下一级台阶</text>
+      <text class="lf-q" x="140" y="236">台阶走完</text>
+      <text class="lf-q" x="380" y="340" text-anchor="middle">同一级卡两次：直接给答案并讲清楚</text>
+    </svg>
+  </div>
+  <figcaption id="lflow-caption">资料是锚，AI 是梯子：主循环在第二行，每条规则都由我自己推出来。<span class="lf-hint">（图可以左右滑动）</span></figcaption>
+</figure>
