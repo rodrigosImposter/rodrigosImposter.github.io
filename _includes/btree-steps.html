@@ -1,0 +1,185 @@
+<figure class="bts" aria-labelledby="bts-caption">
+  <style>
+    .bts { margin: 0 0 2rem; padding: 1rem 1.25rem 1.25rem; border: 1px solid var(--rule); border-radius: 6px; font-family: var(--sans); }
+    .bts .bt-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .bts button {
+      font-family: var(--sans); font-size: 0.9rem; line-height: 1.4;
+      padding: 0.35rem 0.8rem; border-radius: 4px; cursor: pointer;
+      border: 1px solid var(--rule); background: transparent; color: var(--ink);
+    }
+    .bts button:hover:not(:disabled) { border-color: var(--muted); }
+    .bts button:disabled { color: var(--muted); opacity: 0.5; cursor: default; }
+    .bts button.bt-next { background: var(--look); border-color: var(--look); color: var(--paper); }
+    .bts button.bt-next:disabled { background: transparent; color: var(--muted); border-color: var(--rule); }
+    .bts .bt-count { margin-left: auto; font-size: 0.85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .bts .bt-phase { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); margin: 0 0 0.25rem; }
+    .bts .bt-text { margin: 0 0 0.75rem; font-size: 1rem; line-height: 1.7; color: var(--ink); min-height: 3.4em; }
+    .bts svg { width: 100%; height: auto; display: block; }
+    .bts svg text { font-size: 15px; font-family: var(--sans); }
+    .bts figcaption { font-size: 0.8rem; color: var(--muted); margin-top: 0.75rem; line-height: 1.6; }
+    .bts .bt-key { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 2px; vertical-align: -0.05em; margin: 0 0.15em 0 0.4em; }
+    @media (max-width: 600px) {
+      .bts { padding: 0.75rem; }
+      .bts svg text { font-size: 23px; }
+    }
+  </style>
+  <div class="bt-bar">
+    <button type="button" class="bt-prev">上一步</button>
+    <button type="button" class="bt-next">下一步</button>
+    <button type="button" class="bt-reset">重来</button>
+    <span class="bt-count" aria-hidden="true"></span>
+  </div>
+  <p class="bt-phase"></p>
+  <p class="bt-text" aria-live="polite"></p>
+  <svg viewBox="0 0 640 240" role="img" aria-label="3 阶 B 树逐步插入和删除的过程"></svg>
+  <figcaption id="bts-caption">3 阶 B 树：每个节点最多 2 个关键字，除根外至少 1 个。<span class="bt-key" style="background: var(--event-wash); border: 1px solid var(--event);"></span>橙色 = 出问题的节点（溢出或变空）<span class="bt-key" style="border: 2px solid var(--look);"></span>蓝色 = 刚处理完、发生了变化的节点</figcaption>
+  <script>
+  (function () {
+    var root = document.currentScript.closest(".bts");
+    var svg = root.querySelector("svg");
+    var NS = "http://www.w3.org/2000/svg";
+    var narrow = window.matchMedia("(max-width: 600px)");
+
+    function N(keys, kids, hl) { return { k: keys, c: kids || [], hl: hl || "" }; }
+
+    var steps = [
+      ["起点", "一棵 3 阶 B 树。每个节点最多 2 个关键字；k 个关键字的节点有 k+1 个孩子。",
+        N([30], [N([10, 20]), N([40])])],
+      ["插入 15", "15 应该进左边的叶子，叶子变成 [10, 15, 20]：3 个关键字，超过上限，溢出。",
+        N([30], [N([10, 15, 20], [], "e"), N([40])])],
+      ["插入 15", "分裂：左右两半 [10]、[20] 留下，中间的 15 上移进父节点，成为两者之间的分界线。",
+        N([15, 30], [N([10], [], "l"), N([20], [], "l"), N([40])], "l")],
+      ["插入 25", "25 进入 [20]，变成 [20, 25]，没有超过上限，直接结束。",
+        N([15, 30], [N([10]), N([20, 25], [], "l"), N([40])])],
+      ["插入 27", "27 进入 [20, 25]，变成 [20, 25, 27]，溢出。",
+        N([15, 30], [N([10]), N([20, 25, 27], [], "e"), N([40])])],
+      ["插入 27", "分裂：中间的 25（不是新来的 27）上移。父节点变成 [15, 25, 30]，也溢出了。",
+        N([15, 25, 30], [N([10]), N([20], [], "l"), N([27], [], "l"), N([40])], "e")],
+      ["插入 27", "对父节点做同样的分裂，25 再上移。已经没有父节点，25 成为新根。树高 +1，所有叶子同时变深一层。",
+        N([25], [N([15], [N([10]), N([20])], "l"), N([30], [N([27]), N([40])], "l")], "l")],
+      ["插入 35", "35 进入 [40]，变成 [35, 40]，不溢出。",
+        N([25], [N([15], [N([10]), N([20])]), N([30], [N([27]), N([35, 40], [], "l")])])],
+      ["删除 27", "删掉 27，叶子空了，低于下限 1。右兄弟 [35, 40] 有多余的关键字。",
+        N([25], [N([15], [N([10]), N([20])]), N([30], [N([], [], "e"), N([35, 40])])])],
+      ["删除 27", "借：35 不能直接移过来（空节点在 30 左边）。所以父节点的 30 降下来，兄弟的 35 升上去。",
+        N([25], [N([15], [N([10]), N([20])]), N([35], [N([30], [], "l"), N([40], [], "l")], "l")])],
+      ["删除 20", "删掉 20，叶子空了。兄弟 [10] 只有 1 个关键字，借出去自己就空了，借不了。",
+        N([25], [N([15], [N([10]), N([], [], "e")]), N([35], [N([30]), N([40])])])],
+      ["删除 20", "合并：空节点和 [10] 合成一个，分界线 15 降下来，得到 [10, 15]。父节点因此空了。",
+        N([25], [N([], [N([10, 15], [], "l")], "e"), N([35], [N([30]), N([40])])])],
+      ["删除 20", "父节点的兄弟 [35] 也借不了，再合并：分界线 25 降下来，和 35 合成 [25, 35]。根空了，删掉。树高 −1。",
+        N([25, 35], [N([10, 15]), N([30]), N([40])], "l")],
+      ["删除 25", "25 在内部节点。用前驱 15（左子树最大）顶替，叶子 [10] 还剩 1 个关键字，结束。",
+        N([15, 35], [N([10], [], "l"), N([30]), N([40])], "l")]
+    ];
+
+    var cur = 0;
+
+    function cellW() { return narrow.matches ? 46 : 32; }
+    function padW() { return narrow.matches ? 10 : 8; }
+    function nodeW(n) { return Math.max(1, n.k.length) * cellW() + 2 * padW(); }
+    function rowH() { return narrow.matches ? 44 : 32; }
+    function levelGap() { return narrow.matches ? 84 : 72; }
+    function sibGap() { return narrow.matches ? 18 : 20; }
+
+    function depth(n) {
+      var d = 0;
+      for (var i = 0; i < n.c.length; i++) { d = Math.max(d, depth(n.c[i])); }
+      return d + 1;
+    }
+
+    var nextX;
+    function place(n, lvl) {
+      n.lvl = lvl;
+      if (n.c.length === 0) {
+        n.w = nodeW(n);
+        n.x = nextX;
+        nextX += n.w + sibGap();
+        return;
+      }
+      for (var i = 0; i < n.c.length; i++) { place(n.c[i], lvl + 1); }
+      n.w = nodeW(n);
+      var a = n.c[0], b = n.c[n.c.length - 1];
+      var mid = (a.x + b.x + b.w) / 2;
+      n.x = mid - n.w / 2;
+    }
+    function bounds(n, acc) {
+      acc.lo = Math.min(acc.lo, n.x);
+      acc.hi = Math.max(acc.hi, n.x + n.w);
+      for (var i = 0; i < n.c.length; i++) { bounds(n.c[i], acc); }
+      return acc;
+    }
+    function shift(n, dx) {
+      n.x += dx;
+      for (var i = 0; i < n.c.length; i++) { shift(n.c[i], dx); }
+    }
+
+    function mk(tag, attrs, txt) {
+      var e = document.createElementNS(NS, tag);
+      for (var a in attrs) { e.setAttribute(a, attrs[a]); }
+      if (txt !== undefined) { e.textContent = txt; }
+      return e;
+    }
+
+    function y0(n) { return 16 + n.lvl * levelGap(); }
+
+    function draw(n, edges, nodes) {
+      var top = y0(n), h = rowH();
+      for (var i = 0; i < n.c.length; i++) {
+        var ch = n.c[i];
+        var sx = n.k.length === 0 ? n.x + n.w / 2 : n.x + padW() + i * cellW();
+        edges.appendChild(mk("line", {
+          x1: sx, y1: top + h, x2: ch.x + ch.w / 2, y2: y0(ch),
+          stroke: "var(--muted)", "stroke-width": 1.25
+        }));
+        draw(ch, edges, nodes);
+      }
+      var fill = "var(--paper)", stroke = "var(--muted)", sw = 1.25;
+      if (n.hl === "e") { fill = "var(--event-wash)"; stroke = "var(--event)"; sw = 2; }
+      if (n.hl === "l") { stroke = "var(--look)"; sw = 2.5; }
+      var g = mk("g", {});
+      g.appendChild(mk("rect", { x: n.x, y: top, width: n.w, height: h, rx: 6, fill: fill, stroke: stroke, "stroke-width": sw }));
+      if (n.k.length === 0) {
+        g.appendChild(mk("text", { x: n.x + n.w / 2, y: top + h / 2, "text-anchor": "middle", "dominant-baseline": "central", fill: "var(--muted)" }, "空"));
+      }
+      for (var j = 0; j < n.k.length; j++) {
+        var cx = n.x + padW() + (j + 0.5) * cellW();
+        g.appendChild(mk("text", { x: cx, y: top + h / 2, "text-anchor": "middle", "dominant-baseline": "central", fill: "var(--ink)" }, String(n.k[j])));
+        if (j > 0) {
+          var lx = n.x + padW() + j * cellW();
+          g.appendChild(mk("line", { x1: lx, y1: top + 6, x2: lx, y2: top + h - 6, stroke: "var(--rule)", "stroke-width": 1 }));
+        }
+      }
+      nodes.appendChild(g);
+    }
+
+    function render() {
+      var s = steps[cur];
+      var tree = s[2];
+      nextX = 0;
+      place(tree, 0);
+      var b = bounds(tree, { lo: Infinity, hi: -Infinity });
+      var W = narrow.matches ? Math.max(b.hi - b.lo + 32, 360) : 640;
+      shift(tree, (W - (b.hi - b.lo)) / 2 - b.lo);
+      var H = 16 + (depth(tree) - 1) * levelGap() + rowH() + 16;
+      svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+      while (svg.firstChild) { svg.removeChild(svg.firstChild); }
+      var edges = mk("g", {}), nodes = mk("g", {});
+      svg.appendChild(edges);
+      svg.appendChild(nodes);
+      draw(tree, edges, nodes);
+      root.querySelector(".bt-phase").textContent = s[0];
+      root.querySelector(".bt-text").textContent = s[1];
+      root.querySelector(".bt-count").textContent = (cur + 1) + " / " + steps.length;
+      root.querySelector(".bt-prev").disabled = cur === 0;
+      root.querySelector(".bt-next").disabled = cur === steps.length - 1;
+    }
+
+    root.querySelector(".bt-prev").addEventListener("click", function () { if (cur > 0) { cur--; render(); } });
+    root.querySelector(".bt-next").addEventListener("click", function () { if (cur < steps.length - 1) { cur++; render(); } });
+    root.querySelector(".bt-reset").addEventListener("click", function () { cur = 0; render(); });
+    if (narrow.addEventListener) { narrow.addEventListener("change", render); }
+    render();
+  })();
+  </script>
+</figure>
