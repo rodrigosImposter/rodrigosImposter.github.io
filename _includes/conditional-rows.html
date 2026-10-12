@@ -1,0 +1,124 @@
+<figure class="cdr" aria-labelledby="cdr-caption">
+  <style>
+    .cdr { margin: 0 0 2rem; padding: 1rem 1.25rem 1.25rem; border: 1px solid var(--rule); border-radius: 6px; font-family: var(--sans); }
+    .cdr .cd-rule { margin: 0 0 0.75rem; font-size: 1rem; color: var(--ink); }
+    .cdr .cd-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: 0.75rem; }
+    .cdr .cd-label { font-size: 0.8rem; color: var(--muted); margin-right: 0.2rem; }
+    .cdr button {
+      font-family: var(--sans); font-size: 0.9rem; line-height: 1.4;
+      padding: 0.3rem 0.7rem; border-radius: 4px; cursor: pointer;
+      border: 1px solid var(--rule); background: transparent; color: var(--ink);
+    }
+    .cdr button:hover { border-color: var(--muted); }
+    .cdr button[aria-pressed="true"] { background: var(--wash); border-color: var(--muted); font-weight: 700; }
+    .cdr table { width: 100%; border-collapse: collapse; margin: 0 0 0.75rem; font-size: 1rem; }
+    .cdr th, .cdr td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--rule); text-align: left; }
+    .cdr th { font-size: 0.85rem; color: var(--muted); font-weight: 400; }
+    .cdr td.cd-n { color: var(--muted); width: 2em; font-variant-numeric: tabular-nums; }
+    .cdr tr.cd-out td.cd-v { text-decoration: line-through; color: var(--muted); }
+    .cdr tr.cd-banned td { background: var(--event-wash); }
+    .cdr tr.cd-live td.cd-v { font-weight: 700; }
+    .cdr td.cd-why { font-size: 0.85rem; color: var(--muted); }
+    .cdr tr.cd-banned td.cd-why { color: var(--event); }
+    .cdr .cd-out-text { margin: 0; font-size: 1rem; line-height: 1.7; color: var(--ink); min-height: 3.4em; }
+    .cdr .cd-out-text b { color: var(--look); }
+    .cdr figcaption { font-size: 0.8rem; color: var(--muted); margin-top: 0.5rem; line-height: 1.6; }
+    @media (max-width: 600px) {
+      .cdr { padding: 0.75rem; }
+      .cdr th, .cdr td { padding: 0.4rem 0.35rem; }
+      .cdr td.cd-why { font-size: 0.8rem; }
+    }
+  </style>
+  <p class="cd-rule">题干：如果下雨，那么比赛取消。</p>
+  <div class="cd-bar" role="group" aria-label="选择已知条件">
+    <span class="cd-label">已知</span>
+  </div>
+  <table>
+    <thead><tr><th></th><th>下雨？</th><th>取消？</th><th>这一行</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <p class="cd-out-text" aria-live="polite"></p>
+  <figcaption id="cdr-caption">橙色底的第 2 行永远被题干排除。选一个已知，和它矛盾的行会被划掉，剩下的行就是所有可能的情况。</figcaption>
+  <script>
+  (function () {
+    var root = document.currentScript.closest(".cdr");
+    var bar = root.querySelector(".cd-bar");
+    var tbody = root.querySelector("tbody");
+    var out = root.querySelector(".cd-out-text");
+
+    // rain, cancel for rows 1-4
+    var ROWS = [[true, true], [true, false], [false, true], [false, false]];
+    // key, label, which variable (0 rain, 1 cancel), value, name used in the conclusion
+    var GIVENS = [
+      ["none", "（无）", -1, null, ""],
+      ["r", "下雨", 0, true, "肯前必肯后"],
+      ["c0", "没取消", 1, false, "否后必否前"],
+      ["c", "取消", 1, true, "肯后推不出"],
+      ["r0", "没下雨", 0, false, "否前推不出"]
+    ];
+    var current = "none";
+
+    function word(v, i) {
+      if (i === 0) return v ? "下雨" : "不下雨";
+      return v ? "取消" : "没取消";
+    }
+
+    GIVENS.forEach(function (g) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = g[1];
+      b.setAttribute("data-k", g[0]);
+      b.addEventListener("click", function () { current = g[0]; render(); });
+      bar.appendChild(b);
+    });
+
+    function render() {
+      var g = GIVENS.filter(function (x) { return x[0] === current; })[0];
+      bar.querySelectorAll("button").forEach(function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-k") === current ? "true" : "false");
+      });
+      tbody.textContent = "";
+      var live = [];
+      ROWS.forEach(function (r, idx) {
+        var tr = document.createElement("tr");
+        var banned = r[0] && !r[1];
+        var clash = g[2] >= 0 && r[g[2]] !== g[3];
+        var why = "可能";
+        if (banned) why = "题干排除";
+        else if (clash) why = "与已知矛盾";
+        else live.push(r);
+        if (banned) tr.className = "cd-banned cd-out";
+        else if (clash) tr.className = "cd-out";
+        else if (g[2] >= 0) tr.className = "cd-live";
+        [String(idx + 1), word(r[0], 0), word(r[1], 1), why].forEach(function (t, j) {
+          var td = document.createElement("td");
+          td.textContent = t;
+          td.className = j === 0 ? "cd-n" : (j === 3 ? "cd-why" : "cd-v");
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+
+      if (g[2] < 0) {
+        out.textContent = "没有已知时，题干只排除第 2 行，剩下三种情况都可能。选一个已知试试。";
+        return;
+      }
+      var other = 1 - g[2];
+      var vals = live.map(function (r) { return r[other]; });
+      var allSame = vals.every(function (v) { return v === vals[0]; });
+      var rowsText = "剩下 " + live.length + " 行";
+      out.textContent = "";
+      out.appendChild(document.createTextNode(rowsText + "。"));
+      var b = document.createElement("b");
+      if (allSame) {
+        b.textContent = "能推出：" + word(vals[0], other) + "。";
+      } else {
+        b.textContent = "推不出：剩下的行里" + word(true, other) + "和" + word(false, other) + "都有。";
+      }
+      out.appendChild(b);
+      out.appendChild(document.createTextNode("（" + g[4] + "）"));
+    }
+    render();
+  })();
+  </script>
+</figure>
